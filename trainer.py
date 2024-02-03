@@ -76,7 +76,8 @@ class TrainerStage1:
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN * 3, :,  :]
-                mask = (maskLogit > 0).byte()
+                #mask = (maskLogit > 0).byte()
+                mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
@@ -136,7 +137,8 @@ class TrainerStage1:
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN*3,:,:]
-                mask = (maskLogit > 0).byte()
+                #mask = (maskLogit > 0).byte()
+                mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
