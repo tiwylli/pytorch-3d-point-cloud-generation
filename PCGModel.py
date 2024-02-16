@@ -4,12 +4,6 @@ from torch import nn
 from torch.nn import functional as F
 
 
-#Somwhere in here, the model has a shape error, source: UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
-# is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
-#  Please ensure they have the same size.
-#   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
-
-
 def conv2d_block(in_c, out_c):
     return nn.Sequential(
         nn.Conv2d(in_c, out_c, 3, stride=2, padding=1),

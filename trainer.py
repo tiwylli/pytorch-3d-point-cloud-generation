@@ -80,10 +80,12 @@ class TrainerStage1:
                 #mask = (maskLogit > 0).byte()
                 mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
-                # Shape error proably here
+                # Shape error IS here!
+                # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
+                # is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
+                #   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
                 print("SHAPES")
                 print(XY.shape, XYGT.shape)
-                print(depth.masked_select(mask).shape, depthGT.masked_select(mask).shape)
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
