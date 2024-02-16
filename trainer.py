@@ -24,7 +24,6 @@ class TrainerStage1:
 
     def train(self, model, optimizer, scheduler):
         print("======= TRAINING START =======")
-
         for self.epoch in range(self.cfg.startEpoch, self.cfg.endEpoch):
             print(f"Epoch {self.epoch}:")
 
@@ -49,6 +48,8 @@ class TrainerStage1:
 
         print("======= TRAINING DONE =======")
         return pd.DataFrame(self.history)
+
+
 
     def _train_on_epoch(self, model, optimizer):
         model.train()
@@ -79,6 +80,7 @@ class TrainerStage1:
                 #mask = (maskLogit > 0).byte()
                 mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
+                # Shape error proably here
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
@@ -91,8 +93,9 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
+                            # Fixed deprecated method
                             param.data.add_(
-                                -self.cfg.trueWD * group['lr'], param.data)
+                                -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             if self.on_after_batch is not None:
