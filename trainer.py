@@ -24,7 +24,6 @@ class TrainerStage1:
 
     def train(self, model, optimizer, scheduler):
         print("======= TRAINING START =======")
-
         for self.epoch in range(self.cfg.startEpoch, self.cfg.endEpoch):
             print(f"Epoch {self.epoch}:")
 
