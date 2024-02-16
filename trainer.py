@@ -93,7 +93,7 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            # Testing a fix for the weight decay TODO
+                            # Fixed deprecated method
                             param.data.add_(
                                 -self.cfg.trueWD * group['lr'])
                 optimizer.step()
