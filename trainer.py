@@ -80,6 +80,7 @@ class TrainerStage1:
                 #mask = (maskLogit > 0).byte()
                 mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
+                # Shape error proably here
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
