@@ -35,7 +35,7 @@
 # 	--gpu 1
 
 # Continue training
-python train_stg2.py --model ORIG_STG2 --experiment sgd_trueWD_restart_cont1 \
+python3 train_stg2.py --model ORIG_STG2 --experiment sgd_trueWD_restart_cont1 \
 	--loadPath ORIG_STG1_sgd_trueWD_restart \
 	--chunkSize 100 --batchSize 32 --saveEpoch 10 \
 	--optim sgd --trueWD 1e-4 --lr 1e-1 \
