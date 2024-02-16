@@ -81,6 +81,9 @@ class TrainerStage1:
                 mask = (maskLogit > 0).bool()
                 # ------ Compute loss ------
                 # Shape error proably here
+                print("SHAPES")
+                print(XY.shape, XYGT.shape)
+                print(depth.masked_select(mask).shape, depthGT.masked_select(mask).shape)
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
