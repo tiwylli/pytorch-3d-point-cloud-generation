@@ -94,9 +94,8 @@ class TrainerStage1:
                     for group in optimizer.param_groups:
                         for param in group['params']:
                             # Testing a fix for the weight decay TODO
-                            print(f"param.data: {param.data=}")
                             param.data.add_(
-                                -self.cfg.trueWD * group['lr'], param.data)
+                                -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             if self.on_after_batch is not None:
