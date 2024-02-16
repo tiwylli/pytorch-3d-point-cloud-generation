@@ -50,6 +50,8 @@ class TrainerStage1:
         print("======= TRAINING DONE =======")
         return pd.DataFrame(self.history)
 
+
+
     def _train_on_epoch(self, model, optimizer):
         model.train()
 
@@ -91,6 +93,8 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
+                            # Testing a fix for the weight decay TODO
+                            print(f"param.data: {param.data=}")
                             param.data.add_(
                                 -self.cfg.trueWD * group['lr'], param.data)
                 optimizer.step()
