@@ -84,9 +84,10 @@ class TrainerStage1:
                 # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
                 # is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
                 #   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
-                print("SHAPES")
-                print(XY.shape, XYGT.repeat(100, 1, 1, 1).shape)
-                loss_XYZ = self.l1(XY, XYGT)
+                # print("SHAPES")
+                # print(XY.shape, XYGT.repeat(100, 1, 1, 1).shape)
+                # Trying to fix it by repeating the target
+                loss_XYZ = self.l1(XY, XYGT.repeat(100, 1, 1, 1))
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
                 loss_mask = self.sigmoid_bce(maskLogit, maskGT)
