@@ -503,6 +503,7 @@ class Validator:
                 points24[a, 0] = (xyz[ml > 0]).detach().cpu().numpy()
 
             pointMeanN = np.array([len(p) for p in points24[:, 0]]).mean()
+            
             scipy.io.savemat(
                 f"{self.result_path}/{self.CADs[i]}.mat", 
                 {"image": cad["image_in"], "pointcloud": points24})
