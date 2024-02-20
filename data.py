@@ -140,7 +140,7 @@ class PointCloud2dDataset(Dataset):
         # groundTruth_images = resize(groundTruth_images, (128, 128))
 
         # print(f"groundTruth_images: {groundTruth_images.shape=}")
-        groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :]
+        groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :, 0]
 
 
         groundTruth = torch.from_numpy(groundTruth)
