@@ -119,7 +119,7 @@ class PointCloud2dDataset(Dataset):
         # print(f"modelIdx: {modelIdx=}")
         # eval_angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
         # print("eval_angleIdx: ", eval_angleIdx)
-        eval_angleIdx = np.arange(2 * self.cfg.outViewN)
+
 
         images = batch_n["image_in"][modelIdx, angleIdx]
         depthGT = np.transpose(batch_n["depth"][modelIdx], axes=[0, 2, 3, 1])
@@ -132,12 +132,9 @@ class PointCloud2dDataset(Dataset):
         depthGT = torch.from_numpy(depthGT).permute((0,3,1,2))
         maskGT = torch.from_numpy(maskGT).permute((0,3,1,2))
 
-        groundTruth = batch_n["image_in"]
-        print(f"groundTruth: {groundTruth.shape=}")
 
-
-        groundTruth = batch_n["image_in"][modelIdx, 0:16, :, :, :]
-
+        groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :, :]
+        groundTruth = torch.from_numpy(maskGT).permute((0,3,1,2))
         return {
             "inputImage": images,
             "depthGT": depthGT,
