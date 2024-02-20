@@ -1,7 +1,7 @@
 """Pytorch Dataset and Dataloader for 3D PCG"""
 import numpy as np
 import scipy
-import cv2
+from skimage.transform import resize
 import torch
 from torch.utils.data import DataLoader, Dataset
 
@@ -137,7 +137,7 @@ class PointCloud2dDataset(Dataset):
         groundTruth_images = batch_n["image_in"][modelIdx]
         print(f"groundTruth_images: {groundTruth_images.shape=}")
 
-        groundTruth_images = cv2.resize(groundTruth_images.astype(np.float16), None, fx=2., fy=2., interpolation=cv2.INTER_LINEAR)
+        groundTruth_images = resize(groundTruth_images, (128, 128))
 
         print(f"groundTruth_images: {groundTruth_images.shape=}")
         groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :]
