@@ -136,7 +136,7 @@ class PointCloud2dDataset(Dataset):
         print(f"groundTruth: {groundTruth.shape=}")
 
 
-        groundTruth = batch_n["image_in"][modelIdx, eval_angleIdx, :, :, :]
+        groundTruth = batch_n["image_in"][modelIdx, 0:16, :, :, :]
 
         return {
             "inputImage": images,
