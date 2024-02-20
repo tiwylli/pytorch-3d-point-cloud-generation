@@ -66,8 +66,6 @@ class TrainerStage1:
                 torch.arange(self.cfg.outH), # [H,W]
                 torch.arange(self.cfg.outW)]) # [H,W]
             XGT, YGT = XGT.float(), YGT.float()
-            print(XGT.shape, YGT.shape)
-            print(XGT, YGT)
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
@@ -76,7 +74,7 @@ class TrainerStage1:
             XYGT = XYGT.to(self.cfg.device) # [B,2V,H,W] 
 
     
-            # --- Put actuall ground truth into XYGT ---
+            # --- Put actual ground truth into XYGT ---
             print(XYGT.shape)
             print(XYGT)
             print("input_images.shape", input_images.shape)
