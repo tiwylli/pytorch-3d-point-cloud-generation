@@ -183,7 +183,7 @@ class TrainerStage1:
         num_imgs = 64
 
         batch = next(iter(self.data_loaders[1]))
-        input_images, depthGT, maskGT = utils.unpack_batch_fixed(batch, self.cfg.device)
+        input_images, depthGT, maskGT, groundTruth = utils.unpack_batch_fixed(batch, self.cfg.device)
 
         with torch.set_grad_enabled(False):
             XYZ, maskLogit = model(input_images)
