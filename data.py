@@ -116,6 +116,9 @@ class PointCloud2dDataset(Dataset):
         # 24 is the number of rendered images for a single CAD models
         angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
 
+        eval_angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
+        print("eval_angleIdx: ", eval_angleIdx)
+
         images = batch_n["image_in"][modelIdx, angleIdx]
         depthGT = np.transpose(batch_n["depth"][modelIdx], axes=[0, 2, 3, 1])
         maskGT = np.transpose(batch_n["mask"][modelIdx], axes=[0, 2, 3, 1])\
@@ -131,6 +134,7 @@ class PointCloud2dDataset(Dataset):
             "inputImage": images,
             "depthGT": depthGT,
             "maskGT": maskGT,
+            "groundTruth": batch_n[modelIdx, eval_angleIdx]
         }
 
 
