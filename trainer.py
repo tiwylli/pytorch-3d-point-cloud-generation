@@ -71,7 +71,16 @@ class TrainerStage1:
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
-            XYGT = XYGT.unsqueeze(dim=0).to(self.cfg.device) # [1,2V,H,W] 
+            XYGT = XYGT.unsqueeze(dim=0) # [1,2V,H,W] 
+            XYGT = XYGT.repeat([input_images.size(0), 1, 1, 1]) # [B,2V,H,W]
+            XYGT = XYGT.to(self.cfg.device) # [B,2V,H,W] 
+
+    
+            # --- Put actuall ground truth into XYGT ---
+            print(XYGT.shape)
+            print(XYGT)
+            print("input_images.shape", input_images.shape)
+            print(input_images)
 
             with torch.set_grad_enabled(True):
                 optimizer.zero_grad()
@@ -85,9 +94,9 @@ class TrainerStage1:
                 # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
                 # is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
                 #   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
-                print("-----------------------------XYGT RIGHT AS IT GOES IN---------------------------")
-                print(XYGT.shape)
-                print(XYGT)
+
+
+                # TODO XYGT IS NOT ACTUALLY GROUND TRUTH
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
