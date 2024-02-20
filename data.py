@@ -136,7 +136,8 @@ class PointCloud2dDataset(Dataset):
 
         groundTruth_images = batch_n["image_in"][modelIdx]
         print(f"groundTruth_images: {groundTruth_images.shape=}")
-        groundTruth_images = cv2.resize(groundTruth_images, None, fx=2. fy=2., interpolation=cv2.INTER_LINEAR)
+        groundTruth_images = cv2.resize(groundTruth_images, None, fx=2., fy=2., interpolation=cv2.INTER_LINEAR)
+
         print(f"groundTruth_images: {groundTruth_images.shape=}")
         groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :]
 
