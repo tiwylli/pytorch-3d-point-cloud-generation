@@ -93,6 +93,8 @@ class TrainerStage1:
 
 
                 # TODO XYGT IS NOT ACTUALLY GROUND TRUTH
+                print(f"XYGT: {XYGT.shape=}")
+                print(f"XY: {XY.shape=}")
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
