@@ -139,7 +139,7 @@ class PointCloud2dDataset(Dataset):
         groundTruth_images = batch_n["image_in"][modelIdx]
         print(f"groundTruth_images: {groundTruth_images.shape=}")
 
-        groundTruth_images = F.interpolate(groundTruth_images, scale_factor=2)
+        groundTruth_images = F.interpolate(torch.from_numpy(groundTruth_images), scale_factor=2)
 
         print(f"groundTruth_images: {groundTruth_images.shape=}")
 
