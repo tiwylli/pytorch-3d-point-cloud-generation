@@ -139,7 +139,7 @@ class TrainerStage1:
         running_loss = 0.0
 
         for batch in data_loader:
-            input_images, depthGT, maskGT = utils.unpack_batch_fixed(batch, self.cfg.device)
+            input_images, depthGT, maskGT, groundTruth = utils.unpack_batch_fixed(batch, self.cfg.device)
             # ------ define ground truth------
             XGT, YGT = torch.meshgrid([
                 torch.arange(self.cfg.outH), # [H,W]
@@ -149,6 +149,8 @@ class TrainerStage1:
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
             XYGT = XYGT.unsqueeze(dim=0).to(self.cfg.device) # [1,2V,H,W] 
+
+            XYGT = groundTruth
 
             with torch.set_grad_enabled(False):
                 XYZ, maskLogit = model(input_images)
