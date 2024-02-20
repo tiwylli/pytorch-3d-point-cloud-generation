@@ -116,7 +116,7 @@ class PointCloud2dDataset(Dataset):
         # 24 is the number of rendered images for a single CAD models
         angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
 
-        print(f"modelIdx: {modelIdx=}")
+        # print(f"modelIdx: {modelIdx=}")
         # eval_angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
         # print("eval_angleIdx: ", eval_angleIdx)
         eval_angleIdx = np.arange(2 * self.cfg.outViewN)
@@ -136,7 +136,7 @@ class PointCloud2dDataset(Dataset):
         print(f"groundTruth: {groundTruth.shape=}")
 
 
-        groundTruth = batch_n["image_in"][modelIdx, eval_angleIdx]
+        groundTruth = batch_n["image_in"][modelIdx, eval_angleIdx, :, :, :]
 
         return {
             "inputImage": images,
