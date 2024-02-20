@@ -132,6 +132,10 @@ class PointCloud2dDataset(Dataset):
         depthGT = torch.from_numpy(depthGT).permute((0,3,1,2))
         maskGT = torch.from_numpy(maskGT).permute((0,3,1,2))
 
+        groundTruth = batch_n["image_in"]
+        print(f"groundTruth: {groundTruth=}")
+
+
         groundTruth = batch_n["image_in"][modelIdx, eval_angleIdx]
 
         return {
