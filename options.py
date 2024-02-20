@@ -131,7 +131,7 @@ def parse_arguments():
         "--inSize", default="64x64",
         help="resolution of encoder input")
     parser.add_argument(
-        "--outSize", default="128x128",
+        "--outSize", default="64x64",
         help="resolution of decoder output")
     parser.add_argument(
         "--predSize", default="128x128",
