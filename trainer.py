@@ -66,6 +66,8 @@ class TrainerStage1:
                 torch.arange(self.cfg.outH), # [H,W]
                 torch.arange(self.cfg.outW)]) # [H,W]
             XGT, YGT = XGT.float(), YGT.float()
+            print(XGT.shape, YGT.shape)
+            print(XGT, YGT)
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
@@ -73,7 +75,7 @@ class TrainerStage1:
 
             with torch.set_grad_enabled(True):
                 optimizer.zero_grad()
-
+                
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN * 3, :,  :]
@@ -83,6 +85,9 @@ class TrainerStage1:
                 # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
                 # is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
                 #   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
+                print("-----------------------------XYGT RIGHT AS IT GOES IN---------------------------")
+                print(XYGT.shape)
+                print(XYGT)
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
@@ -132,8 +137,6 @@ class TrainerStage1:
             XGT, YGT = torch.meshgrid([
                 torch.arange(self.cfg.outH), # [H,W]
                 torch.arange(self.cfg.outW)]) # [H,W]
-            print(XGT.shape, YGT.shape)
-            print(XGT, YGT)
             XGT, YGT = XGT.float(), YGT.float()
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
