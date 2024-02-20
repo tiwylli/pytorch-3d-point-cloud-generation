@@ -119,7 +119,7 @@ class PointCloud2dDataset(Dataset):
         print(f"modelIdx: {modelIdx=}")
         # eval_angleIdx = np.random.randint(24, size=[self.cfg.batchSize])
         # print("eval_angleIdx: ", eval_angleIdx)
-        eval_angleIdx = np.arange(2 * batch_n["viewN"])
+        eval_angleIdx = [x for x in range(2 * self.cfg.outViewN)]
 
         images = batch_n["image_in"][modelIdx, angleIdx]
         depthGT = np.transpose(batch_n["depth"][modelIdx], axes=[0, 2, 3, 1])
