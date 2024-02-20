@@ -75,7 +75,6 @@ class TrainerStage1:
                 optimizer.zero_grad()
 
                 XYZ, maskLogit = model(input_images)
-                print(XYZ.shape, maskLogit.shape)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN * 3, :,  :]
                 mask = (maskLogit > 0).bool()
@@ -84,8 +83,6 @@ class TrainerStage1:
                 # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
                 # is different to the input size (torch.Size([100, 16, 128, 128])). This will likely lead to incorrect results due to broadcasting.
                 #   return F.l1_loss(input, target, reduction=self.reduction) (from loss.py forward())
-                # print("SHAPES")
-                # print(XY.shape, XYGT.repeat(100, 1, 1, 1).shape)
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
                                     depthGT.masked_select(mask))
@@ -135,6 +132,8 @@ class TrainerStage1:
             XGT, YGT = torch.meshgrid([
                 torch.arange(self.cfg.outH), # [H,W]
                 torch.arange(self.cfg.outW)]) # [H,W]
+            print(XGT.shape, YGT.shape)
+            print(XGT, YGT)
             XGT, YGT = XGT.float(), YGT.float()
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
