@@ -134,7 +134,7 @@ class PointCloud2dDataset(Dataset):
 
 
         groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :, :]
-        groundTruth = torch.from_numpy(groundTruth).permute((0,3,1,2))
+        groundTruth = torch.from_numpy(groundTruth)
         return {
             "inputImage": images,
             "depthGT": depthGT,
