@@ -4,6 +4,8 @@ import scipy
 # from skimage.transform import resize
 import torch
 from torch.utils.data import DataLoader, Dataset
+from torch.nn import functional as F
+
 
 
 class PointCloud2dDataset(Dataset):
@@ -134,12 +136,16 @@ class PointCloud2dDataset(Dataset):
         maskGT = torch.from_numpy(maskGT).permute((0,3,1,2))
 
 
-        # groundTruth_images = batch_n["image_in"][modelIdx]
-        # print(f"groundTruth_images: {groundTruth_images.shape=}")
+        groundTruth_images = batch_n["image_in"][modelIdx]
+        print(f"groundTruth_images: {groundTruth_images.shape=}")
 
-        # groundTruth_images = resize(groundTruth_images, (128, 128))
+        groundTruth_images = F.interpolate(x, scale_factor=2)
 
-        # print(f"groundTruth_images: {groundTruth_images.shape=}")
+        print(f"groundTruth_images: {groundTruth_images.shape=}")
+
+
+        
+
         groundTruth = batch_n["image_in"][modelIdx, :2 * self.cfg.outViewN, :, :, 0]
 
 
