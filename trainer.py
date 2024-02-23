@@ -90,8 +90,7 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data.add_(
-                                -self.cfg.trueWD * group['lr'], param.data)
+                            param.data.add_(param.data, -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             if self.on_after_batch is not None:
@@ -223,8 +222,7 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'], param.data)
+                            param.data = param.data.add(param.data, -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             losses.append(loss.item())
@@ -314,8 +312,7 @@ class TrainerStage2:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'], param.data)
+                            param.data = param.data.add(param.data, -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             if self.on_after_batch is not None:
@@ -445,9 +442,8 @@ class TrainerStage2:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'],
-                                param.data)
+                            param.data = param.data.add(param.data,
+                                -self.cfg.trueWD * group['lr'])
                 optimizer.step()
 
             losses.append(loss.item())
