@@ -21,7 +21,6 @@ SCRIPT_ARGS="--model ORIG_STG1 --experiment adam_trueWD \
 ## SCRIPT
 echo "SBATCH SCRIPT: ${SCRIPT_NAME}"
 srun hostname; pwd; date;
-pip install tensorboard
-pip install tensorboardx
+pip install tensorboardX
 srun singularity exec --nv -B /data:/data ${CONTAINER} python3 ${PYTHON_FILE} ${SCRIPT_ARGS}
 echo "END: " $SCRIPT_NAME
