@@ -68,8 +68,8 @@ class TrainerStage1:
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
-            XYGT = XYGT.unsqueeze(dim=0) # [1,2V,H,W] 
-            XYGT = XYGT.repeat([input_images.size(0), 1, 1, 1]).to(self.cfg.device) # [B,2V,H,W]
+            XYGT = XYGT.unsqueeze(dim=0).to(self.cfg.device) # [1,2V,H,W] 
+            # XYGT = XYGT.repeat([input_images.size(0), 1, 1, 1]) # [B,2V,H,W]
 
             with torch.set_grad_enabled(True):
                 optimizer.zero_grad()
