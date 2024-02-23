@@ -186,7 +186,7 @@ class TrainerStage1:
         model.train()
 
         losses = []
-        lrs = np.logspace(np.log10(start_lr), np.log10(end_lr), num_iters)
+        lrs = np.logspace(start=np.log10(start_lr), end=np.log10(end_lr), num=num_iters)
 
         for lr in lrs:
             # Update LR
