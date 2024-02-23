@@ -1,54 +1,25 @@
 #!/bin/bash
 
-# ###############################################################################
-#
-# Submit file for a batch job on Rosie.
-#
-# To submit your job, run 'sbatch <jobfile>'
-# To view your jobs in the Slurm queue, run 'squeue -l -u <your_username>'
-# To view details of a running job, run 'scontrol show jobid -d <jobid>'
-# To cancel a job, run 'scancel <jobid>'
-#
-# See the manpages for salloc, srun, sbatch, squeue, scontrol, and scancel
-# for more information or read the Slurm docs online: https://slurm.schedmd.com
-#
-# ###############################################################################
+#SBATCH --job-name="Sbatch Example"
+#SBATCH --output=job_%j.out
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=student@msoe.edu
+#SBATCH --partition=teaching
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:t4:1
+#SBATCH --cpus-per-gpu=4
 
+SCRIPT_NAME="Rosie Job Script For 3D Point Cloud Generation"
+CONTAINER="/data/containers/msoe-pytorch-23.05-py3.sif"
+PYTHON_FILE="train_stg1.py"
+SCRIPT_ARGS="--model ORIG_STG1 --experiment adam_trueWD \
+	--endEpoch 1000 \
+	--chunkSize 100 --batchSize 100 \
+	--optim adam --trueWD 1e-4 --lr 5e-3 \
+	--gpu 1"
 
-# You _must_ specify the partition. Rosie's default is the 'teaching'
-# partition for interactive nodes.  Another option is the 'batch' partition.
-# SBATCH --partition=batch
-
-# The number of nodes to request
-# SBATCH --nodes=1
-
-# The number of GPUs to request
-# SBATCH --gpus=0
-
-# The number of CPUs to request per GPU
-# SBATCH --cpus-per-gpu=2
-
-# The error file to write to
-# SBATCH --error='sbatcherrorfile.out'
-
-# Kill the job if it takes longer than the specified time
-# format: <days>-<hours>:<minutes>
-# SBATCH --time=0-1:0
-
-
-# ###
-#
-# Here's the actual job code.
-# Note: You need to make sure that you execute this from the directory that
-# your python file is located in OR provide an absolute path.
-#
-# ###
-
-# Path to container
-container="/data/containers/msoe-pytorch-23.05-py3.sif"
-
-# Command to run inside container
-command="./scripts/train_stg1.sh"
-
-# Execute singularity container on node.
-singularity exec --nv -B /data:/data ${container} /usr/local/bin/nvidia_entrypoint.sh ${command}
+## SCRIPT
+echo "SBATCH SCRIPT: ${SCRIPT_NAME}"
+srun hostname; pwd; date;
+srun singularity exec --nv -B /data:/data ${CONTAINER} python3 ${PYTHON_FILE} ${SCRIPT_ARGS}
+echo "END: " $SCRIPT_NAME
