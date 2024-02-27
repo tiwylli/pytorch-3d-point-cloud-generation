@@ -12,7 +12,7 @@ import bpy
 from glob import glob
 
 parser = argparse.ArgumentParser(description='Renders given obj file by rotation a camera around it.')
-parser.add_argument('--views', type=int, default=30,
+parser.add_argument('--views', type=int, default=8,
                     help='number of views to be rendered')
 parser.add_argument('obj', type=str,
                     help='Path to the obj file to be rendered.')
@@ -152,7 +152,8 @@ bpy.ops.object.delete()
 # Import textured mesh
 bpy.ops.object.select_all(action='DESELECT')
 
-bpy.ops.import_scene.obj(filepath=args.obj)
+#bpy.ops.import_scene.obj(filepath=args.obj)
+bpy.ops.import_mesh.stl(filepath=args.obj)
 
 obj = bpy.context.selected_objects[0]
 context.view_layer.objects.active = obj
