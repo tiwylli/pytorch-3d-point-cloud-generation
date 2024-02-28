@@ -14,7 +14,7 @@ script on the command line as-is. I've tried to comment this script to be easy t
 :license:   MIT
 
 """
-#to run the program for now type "blender -b -P mesh2img.py -- --paths C:\first_try --dimensions 1080 -x 7" in the cmd
+#RUN:
 #cd dataset_render
 #blender -b -P stl2img.py -- --paths C:\Users\tiwyl\PycharmProjects\pytorch-3d-point-cloud-generation\dataset_render\ --dimensions 1080 -x 5
 
@@ -465,7 +465,7 @@ def set_camera(x=0, y=0, z=10, rotation_x=0, rotation_y=0, rotation_z=0, camera_
     rx, ry, rz = math.radians(rotation_x), math.radians(rotation_y), math.radians(rotation_z)
     camera.rotation_euler = (rx, ry, rz)
 
-def tracking_camera(position=(10,10,10), camera_name='Camera', mesh=None):
+def tracking_camera(position=(10,10,10), camera_name='Camera'):
     """
     Sets the camera named by `camera_name` to track the origin of the scene
     :param position: the X,Y,Z position of the camera
