@@ -47,13 +47,11 @@ class Mesh2Img(object):
     """
 
     DEFAULT_CAMERA_COORDS = (0, 0, 10.0)  # by default our camera sits 10 units above the origin
-    #CARDINAL_COORDS = [(-10,-10,-10),(-10,-10,10), (-10,10,-10), (-10,10,10), (10,-10,-10), (10,-10,10), (10,10,-10), (10,10,10), (10, 10, 5), (10, 10, -5), (10, 5, 10), (10, -5, 10), (-5, 10, 10), (5, 10, 10)]
-
     CARDINAL_COORDS = [(-5,5,5),(5,5,5),(5,5,-5),(-5,5,-5),
                        (-5,-5,5),(5,-5,5),(5,-5,-5),(-5,-5,-5),
                        (0,0,10),(0,0,-10),(0,10,0),(0,-10,0),(10,0,0),(-10,0,0)]
     DEFAULT_CAMERA_ROTATION = (0, 0, 0)  # the camera points down on our mesh
-
+    CAMERA_TYPES = ['PERSP', 'ORTHO']
     DEFAULT_OUTPUT_TEMPLATE = "{filepath}_{width}.{ext}"  # this will generate the image next to the original mesh file
     IMAGE_FORMATS = {
         # file extensions with their render.image_settings.file_format string counterpart
@@ -71,7 +69,7 @@ class Mesh2Img(object):
 #when your ready to put the material paramter put this below 'material=None'.
     def __init__(self, paths=None, dimensions=None, image_format=None, verbose=False,
                  output_template=DEFAULT_OUTPUT_TEMPLATE, max_dim=7.0, camera_coords=DEFAULT_CAMERA_COORDS,
-                 camera_rotation=DEFAULT_CAMERA_ROTATION, jpeg_quality=80, card_coords=CARDINAL_COORDS):
+                 camera_rotation=DEFAULT_CAMERA_ROTATION, jpeg_quality=80, card_coords=CARDINAL_COORDS, camera_type=CAMERA_TYPES[1]):
         """
         Creates a new batch job. Does not start processing paths until you call .start(). You don't have to pass
         anything in at creation time, but at least one path and one set of image dimensions are required for anything
@@ -100,6 +98,7 @@ class Mesh2Img(object):
         self.max_dim = max_dim
         self.camera_coords = camera_coords
         self.camera_rotation = camera_rotation
+        self.camera_type = camera_type
         self.execute_time = datetime.now().strftime('%Y-%m-%d_%H%M%S')
         self.card_coords = card_coords
         if dimensions:
@@ -169,7 +168,7 @@ class Mesh2Img(object):
         # prepare the scene
         delete_object_by_name("Cube", ignore_errors=True)  # factory default Blender has a cube in the default scene
         camera_params = self.camera_coords + self.camera_rotation
-        set_camera(*camera_params)  # take picture from 10 units away
+        set_camera(*camera_params, self.camera_type)  # take picture from 10 units away
 
         for filepath in self.filepaths:
             if os.path.isdir(filepath):
@@ -448,7 +447,7 @@ def scale_mesh(mesh, max_dim=9.0):
                   mesh.name, scale_factor, [i for i in new_dimensions])
 
 
-def set_camera(x=0, y=0, z=10, rotation_x=0, rotation_y=0, rotation_z=0, camera_name='Camera'):
+def set_camera(x=0, y=0, z=10, rotation_x=0, rotation_y=0, rotation_z=0, camera_type='PERSP', camera_name='Camera'):
     """
     Sets the camera named by `camera_name` to the given coordinates.
     :param x: the X position of the camera
@@ -461,6 +460,7 @@ def set_camera(x=0, y=0, z=10, rotation_x=0, rotation_y=0, rotation_z=0, camera_
     """
     camera = data.objects[camera_name]
     camera.location = (x, y, z)
+    camera.data.type = camera_type
     # convert the angles given into radians because that's what Blender operates on
     rx, ry, rz = math.radians(rotation_x), math.radians(rotation_y), math.radians(rotation_z)
     camera.rotation_euler = (rx, ry, rz)
@@ -472,6 +472,8 @@ def tracking_camera(position=(10,10,10), camera_name='Camera'):
     :param camera_name: the name of the camera object to be moved
     """
     data.objects['Light'].location = position
+    data.objects['Light'].data.use_shadow = False
+
     camera = data.objects[camera_name]
     camera.location = position
     # tracking camera
