@@ -6,6 +6,7 @@
 # Example:
 # blender --background --python mytest.py -- --views 10 /path/to/my.obj
 #
+#blender --background --python ./dataset_render/render_blender.py -- --output_folder ./tmp/ ./dataset_render/tyrant.stl
 
 import argparse, sys, os, math, re
 import bpy
