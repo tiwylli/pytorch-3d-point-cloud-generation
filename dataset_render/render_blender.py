@@ -158,6 +158,7 @@ bpy.ops.import_mesh.stl(filepath=args.obj)
 
 obj = bpy.context.selected_objects[0]
 context.view_layer.objects.active = obj
+bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
 
 # Possibly disable specular shading
 for slot in obj.material_slots:
