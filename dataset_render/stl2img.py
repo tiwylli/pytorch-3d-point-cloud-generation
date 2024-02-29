@@ -208,9 +208,8 @@ class Mesh2Img(object):
             for cam_pos in self.card_coords:
                 tracking_camera(cam_pos)
                 output_path = jt.get_output_path(filepath, exec_time=self.execute_time, i=str(self.card_coords.index(cam_pos)))
-                self.save_image(output_path, width=jt.width, height=jt.height, file_format=jt.image_format,
-                            jpeg_quality=jt.jpeg_quality)
-        leave_mesh_open = True
+                #self.save_image(output_path, width=jt.width, height=jt.height, file_format=jt.image_format, jpeg_quality=jt.jpeg_quality)
+                self.setup_rendering(output_path, width=jt.width, height=jt.height, file_format=jt.image_format, jpeg_quality=jt.jpeg_quality)
         if not leave_mesh_open:
             self._delete_mesh(mesh)
 
@@ -351,6 +350,127 @@ class Mesh2Img(object):
             render.stamp_note_text = watermark
         ops.render.render(write_still=True)
 
+    @classmethod
+    def setup_rendering(cls, filepath, width, height=None, file_format='png', antialiasing_samples=16,
+                   resolution_percentage=100, jpeg_quality=100, pngcompression=100, color_depth=8,
+                   allow_transparency=True, watermark=None, watermark_size=18, watermark_metadata=False,
+                   watermark_foreground=WATERMARK_WHITE, watermark_background=WATERMARK_TRANSLUCENT_BLACK):
+        # Set up rendering
+        context = bpy.context
+        scene = bpy.context.scene
+        render = bpy.context.scene.render
+
+        #render.engine = args.engine
+        render.image_settings.color_mode = 'RGBA' if allow_transparency and file_format == 'png' else 'RGB'
+        render.image_settings.color_depth = str(color_depth)
+        try:
+            render.image_settings.file_format = cls.IMAGE_FORMATS[file_format]
+        except KeyError:
+            raise ValueError("%s was not an expected image format." % file_format)
+        render.resolution_x = width
+        render.resolution_y = height if height is not None else width
+
+        render.resolution_percentage = resolution_percentage
+        #render.film_transparent = True
+
+        scene.use_nodes = True
+        scene.view_layers["View Layer"].use_pass_normal = True
+        scene.view_layers["View Layer"].use_pass_diffuse_color = True
+        scene.view_layers["View Layer"].use_pass_object_index = True
+
+        nodes = bpy.context.scene.node_tree.nodes
+        links = bpy.context.scene.node_tree.links
+
+        # Clear default nodes
+        for n in nodes:
+            nodes.remove(n)
+
+        # Create input render layer node
+        render_layers = nodes.new('CompositorNodeRLayers')
+
+        # Create depth output nodes
+        depth_file_output = nodes.new(type="CompositorNodeOutputFile")
+        depth_file_output.label = 'Depth Output'
+        depth_file_output.base_path = ''
+        depth_file_output.file_slots[0].use_node_format = True
+        depth_file_output.format.file_format = cls.IMAGE_FORMATS[file_format]
+        depth_file_output.format.color_depth = str(color_depth)
+        if cls.IMAGE_FORMATS[file_format] == 'OPEN_EXR':
+            links.new(render_layers.outputs['Depth'], depth_file_output.inputs[0])
+        else:
+            depth_file_output.format.color_mode = "BW"
+
+            # Remap as other types can not represent the full range of depth.
+            map = nodes.new(type="CompositorNodeMapValue")
+            # Size is chosen kind of arbitrarily, try out until you're satisfied with resulting depth map.
+            map.offset = [-0.7]
+            map.size = [1.4]
+            map.use_min = True
+            map.min = [0]
+
+            links.new(render_layers.outputs['Depth'], map.inputs[0])
+            links.new(map.outputs[0], depth_file_output.inputs[0])
+
+        # # Create normal output nodes
+        # scale_node = nodes.new(type="CompositorNodeMixRGB")
+        # scale_node.blend_type = 'MULTIPLY'
+        # # scale_node.use_alpha = True
+        # scale_node.inputs[2].default_value = (0.5, 0.5, 0.5, 1)
+        # links.new(render_layers.outputs['Normal'], scale_node.inputs[1])
+        #
+        # bias_node = nodes.new(type="CompositorNodeMixRGB")
+        # bias_node.blend_type = 'ADD'
+        # # bias_node.use_alpha = True
+        # bias_node.inputs[2].default_value = (0.5, 0.5, 0.5, 0)
+        # links.new(scale_node.outputs[0], bias_node.inputs[1])
+        #
+        # normal_file_output = nodes.new(type="CompositorNodeOutputFile")
+        # normal_file_output.label = 'Normal Output'
+        # normal_file_output.base_path = ''
+        # normal_file_output.file_slots[0].use_node_format = True
+        # normal_file_output.format.file_format = args.format
+        # links.new(bias_node.outputs[0], normal_file_output.inputs[0])
+        #
+        # # Create albedo output nodes
+        # alpha_albedo = nodes.new(type="CompositorNodeSetAlpha")
+        # links.new(render_layers.outputs['DiffCol'], alpha_albedo.inputs['Image'])
+        # links.new(render_layers.outputs['Alpha'], alpha_albedo.inputs['Alpha'])
+        #
+        # albedo_file_output = nodes.new(type="CompositorNodeOutputFile")
+        # albedo_file_output.label = 'Albedo Output'
+        # albedo_file_output.base_path = ''
+        # albedo_file_output.file_slots[0].use_node_format = True
+        # albedo_file_output.format.file_format = args.format
+        # albedo_file_output.format.color_mode = 'RGBA'
+        # albedo_file_output.format.color_depth = args.color_depth
+        # links.new(alpha_albedo.outputs['Image'], albedo_file_output.inputs[0])
+        #
+        # # Create id map output nodes
+        # id_file_output = nodes.new(type="CompositorNodeOutputFile")
+        # id_file_output.label = 'ID Output'
+        # id_file_output.base_path = ''
+        # id_file_output.file_slots[0].use_node_format = True
+        # id_file_output.format.file_format = args.format
+        # id_file_output.format.color_depth = args.color_depth
+        #
+        # if args.format == 'OPEN_EXR':
+        #     links.new(render_layers.outputs['IndexOB'], id_file_output.inputs[0])
+        # else:
+        #     id_file_output.format.color_mode = 'BW'
+        #
+        #     divide_node = nodes.new(type='CompositorNodeMath')
+        #     divide_node.operation = 'DIVIDE'
+        #     divide_node.use_clamp = False
+        #     divide_node.inputs[1].default_value = 2 ** int(args.color_depth)
+        #
+        #     links.new(render_layers.outputs['IndexOB'], divide_node.inputs[0])
+        #     links.new(divide_node.outputs[0], id_file_output.inputs[0])
+        data.scenes['Scene'].render.filepath = filepath
+        depth_file_output.file_slots[0].path = filepath + "_depth"
+        #normal_file_output.file_slots[0].path = filepath + "_normal"
+        #albedo_file_output.file_slots[0].path = filepath + "_albedo"
+        #id_file_output.file_slots[0].path = filepath + "_id"
+        bpy.ops.render.render(write_still=True)
 
 class JobTemplate(object):
     def __init__(self, dimensions, output_template, image_format='png', jpeg_quality=80):
