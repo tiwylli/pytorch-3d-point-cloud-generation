@@ -411,7 +411,7 @@ class TrainerStage2:
                start_lr=1e-7, end_lr=10, num_iters=50):
 
         model.train()
-
+        print(num_iters)
         lrs = np.logspace(start=np.log10(start_lr), end=np.log10(end_lr), num=int(num_iters))
         losses = []
         fuseTrans = self.cfg.fuseTrans
