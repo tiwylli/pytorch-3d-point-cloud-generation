@@ -64,6 +64,9 @@ class Encoder(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.fc1(x.contiguous().view(-1, 4096))
+
+        #x = self.fc1(x.view(-1, 4096))
+        #x = self.fc1(x.reshape(-1, 4096))
         x = self.fc2(x)
         x = self.fc3(x)
 
@@ -99,6 +102,7 @@ class Decoder(nn.Module):
         x = self.deconv3(F.interpolate(x, scale_factor=2))
         x = self.deconv4(F.interpolate(x, scale_factor=2))
         x = self.deconv5(F.interpolate(x, scale_factor=2))
+        # x = self.deconv5(x)
         x = self.pixel_conv(x) + self.pixel_bias.to(x.device)
         XYZ, maskLogit = torch.split(
             x, [self.outViewN * 3, self.outViewN], dim=1)
@@ -122,7 +126,7 @@ class Structure_Generator(nn.Module):
     def forward(self, x):
         latent = self.encoder(x)
         XYZ, maskLogit = self.decoder(latent)
-
+        
         return XYZ, maskLogit
 
 
