@@ -1,9 +1,9 @@
-python3 train_stg1.py --model ORIG_STG1 --experiment adam_trueWD \
+python3 train_stg1.py --model ORIG_STG1 --experiment 1k_adam_trueWD \
 	--endEpoch 1000 \
 	--chunkSize 100 --batchSize 100 \
 	--optim adam --trueWD 1e-4 --lr 5e-3 \
 	--saveEpoch 100 \
-	--gpu 1
+	--gpu 4
 
 # python train_stg1.py --model ORIG_STG1 --experiment sgd_trueWD \
 # 	--endEpoch 1000 \

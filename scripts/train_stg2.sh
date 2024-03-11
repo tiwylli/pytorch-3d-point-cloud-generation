@@ -1,9 +1,9 @@
-python3 train_stg2.py --model ORIG_STG2 --experiment adam_trueWD \
-	--loadPath ORIG_STG1_adam_trueWD \
+python3 train_stg2.py --model ORIG_STG2 --experiment 1k_adam_trueWD \
+	--loadPath ORIG_STG1_1k_adam_trueWD \
 	--chunkSize 100 --batchSize 32 \
 	--endEpoch 500 --saveEpoch 20 \
 	--optim adam --trueWD 1e-4 --lr 5e-3 \
-	--gpu 1
+	--gpu 4
 
 # python train_stg2.py --model ORIG_STG2 --experiment sgd_trueWD \
 	# --loadPath ORIG_STG1_sgd_trueWD \
