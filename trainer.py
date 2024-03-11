@@ -69,14 +69,9 @@ class TrainerStage1:
             XYGT = torch.cat([
                 XGT.repeat([self.cfg.outViewN, 1, 1]), 
                 YGT.repeat([self.cfg.outViewN, 1, 1])], dim=0) #[2V,H,W]
-            XYGT = XYGT.unsqueeze(dim=0) # [1,2V,H,W] 
-            XYGT = XYGT.repeat([input_images.size(0), 1, 1, 1]) # [B,2V,H,W]
-            XYGT = XYGT.to(self.cfg.device) # [B,2V,H,W] 
-
-
-            #TODO XYGT IS NOT ACTUALLY GROUND TRUTH
-            #TODO make a part of of the data loader that brings in the ground truth
-            XYGT = groundTruth
+            
+            XYGT = XYGT.unsqueeze(dim=0).to(self.cfg.device) # [1,2V,H,W] 
+            # XYGT = XYGT.repeat([input_images.size(0), 1, 1, 1]) # [B,2V,H,W]
 
             with torch.set_grad_enabled(True):
                 optimizer.zero_grad()
@@ -84,7 +79,9 @@ class TrainerStage1:
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN * 3, :,  :]
-                mask = (maskLogit > 0).bool()
+                
+                mask = (maskLogit > 0).to(torch.bool)
+
                 # ------ Compute loss ------
                 # Shape error IS here!
                 # UserWarning: Using a target size (torch.Size([1, 16, 128, 128])) that 
@@ -107,9 +104,10 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            # Fixed deprecated method
-                            param.data.add_(
-                                -self.cfg.trueWD * group['lr'])
+
+                            # param.data.add_(other=param.data, alpha=-self.cfg.trueWD * group['lr'])
+                            param.data = torch.add(input=param.data, other=param.data, alpha=-self.cfg.trueWD * group['lr'])
+
                 optimizer.step()
 
             if self.on_after_batch is not None:
@@ -156,8 +154,9 @@ class TrainerStage1:
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN*3,:,:]
-                #mask = (maskLogit > 0).byte()
-                mask = (maskLogit > 0).bool()
+                
+                mask = (maskLogit > 0).to(torch.bool)
+
                 # ------ Compute loss ------
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
@@ -207,7 +206,7 @@ class TrainerStage1:
         model.train()
 
         losses = []
-        lrs = np.logspace(np.log10(start_lr), np.log10(end_lr), num_iters)
+        lrs = np.logspace(start=np.log10(start_lr), stop=np.log10(end_lr), num=int(num_iters))
 
         for lr in lrs:
             # Update LR
@@ -230,7 +229,7 @@ class TrainerStage1:
                 XYZ, maskLogit = model(input_images)
                 XY = XYZ[:, :self.cfg.outViewN * 2, :, :]
                 depth = XYZ[:, self.cfg.outViewN * 2:self.cfg.outViewN * 3, :,  :]
-                mask = (maskLogit > 0).byte()
+                mask = (maskLogit > 0).to(torch.bool)
                 # ------ Compute loss ------
                 loss_XYZ = self.l1(XY, XYGT)
                 loss_XYZ += self.l1(depth.masked_select(mask),
@@ -244,8 +243,10 @@ class TrainerStage1:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'])
+
+                            # param.data = param.data.add(param.data, -self.cfg.trueWD * group['lr'])
+                            param.data = torch.add(input=param.data, other=param.data, alpha=-self.cfg.trueWD * group['lr'])
+
                 optimizer.step()
 
             losses.append(loss.item())
@@ -335,8 +336,10 @@ class TrainerStage2:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'])
+
+                            # param.data = param.data.add(param.data, -self.cfg.trueWD * group['lr'])
+                            param.data = torch.add(input=param.data, other=param.data, alpha=-self.cfg.trueWD * group['lr'])
+
                 optimizer.step()
 
             if self.on_after_batch is not None:
@@ -431,8 +434,7 @@ class TrainerStage2:
                start_lr=1e-7, end_lr=10, num_iters=50):
 
         model.train()
-
-        lrs = np.logspace(np.log10(start_lr), np.log10(end_lr), num_iters)
+        lrs = np.logspace(start=np.log10(start_lr), stop=np.log10(end_lr), num=int(num_iters))
         losses = []
         fuseTrans = self.cfg.fuseTrans
 
@@ -466,8 +468,11 @@ class TrainerStage2:
                 if self.cfg.trueWD is not None:
                     for group in optimizer.param_groups:
                         for param in group['params']:
-                            param.data = param.data.add(
-                                -self.cfg.trueWD * group['lr'])
+
+                            # param.data = param.data.add(param.data,
+                            #     -self.cfg.trueWD * group['lr'])
+                            param.data = torch.add(input=param.data, other=param.data, alpha=-self.cfg.trueWD * group['lr'])
+
                 optimizer.step()
 
             losses.append(loss.item())
