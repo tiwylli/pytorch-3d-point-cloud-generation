@@ -17,6 +17,7 @@ script on the command line as-is. I've tried to comment this script to be easy t
 #RUN:
 #cd dataset_render
 #blender -b -P stl2img.py -- --paths C:\Users\tiwyl\PycharmProjects\pytorch-3d-point-cloud-generation\dataset_render\ --dimensions 1080 -x 5
+#blender -b -P stl2img.py -- --paths C:\Users\tiwyl\PycharmProjects\pytorch-3d-point-cloud-generation\dataset_render\ --dimensions 1080 -x 5 -i open_exr
 
 
 from bpy import context, data, ops
@@ -58,7 +59,8 @@ class Mesh2Img(object):
         'bmp': 'BMP',
         'jpg': 'JPEG',
         'png': 'PNG',
-        'tif': 'TIFF'
+        'tif': 'TIFF',
+        'open_exr': 'OPEN_EXR'
     }
     MESH_TYPES = {
         # here are the functions that open the given file extensions
@@ -352,7 +354,7 @@ class Mesh2Img(object):
 
     @classmethod
     def setup_rendering(cls, filepath, width, height=None, file_format='png', antialiasing_samples=16,
-                   resolution_percentage=100, jpeg_quality=100, pngcompression=100, color_depth=8,
+                   resolution_percentage=100, jpeg_quality=100, pngcompression=100, color_depth=16,
                    allow_transparency=True, watermark=None, watermark_size=18, watermark_metadata=False,
                    watermark_foreground=WATERMARK_WHITE, watermark_background=WATERMARK_TRANSLUCENT_BLACK):
         # Set up rendering
@@ -389,6 +391,7 @@ class Mesh2Img(object):
         render_layers = nodes.new('CompositorNodeRLayers')
 
         # Create depth output nodes
+        max_depth = 30.0
         depth_file_output = nodes.new(type="CompositorNodeOutputFile")
         depth_file_output.label = 'Depth Output'
         depth_file_output.base_path = ''
@@ -396,40 +399,47 @@ class Mesh2Img(object):
         depth_file_output.format.file_format = cls.IMAGE_FORMATS[file_format]
         depth_file_output.format.color_depth = str(color_depth)
         if cls.IMAGE_FORMATS[file_format] == 'OPEN_EXR':
-            links.new(render_layers.outputs['Depth'], depth_file_output.inputs[0])
-        else:
-            depth_file_output.format.color_mode = "BW"
+            # Normalize depth values
+            normalize_node = nodes.new(type="CompositorNodeMapValue")
+            normalize_node.offset = [0.0]
+            normalize_node.size = [1.0 / max_depth]
+            links.new(render_layers.outputs['Depth'], normalize_node.inputs[0])
+            links.new(normalize_node.outputs[0], depth_file_output.inputs[0])
+            # links.new(render_layers.outputs['Depth'], depth_file_output.inputs[0])
 
-            # Remap as other types can not represent the full range of depth.
-            map = nodes.new(type="CompositorNodeMapValue")
-            # Size is chosen kind of arbitrarily, try out until you're satisfied with resulting depth map.
-            map.offset = [-0.7]
-            map.size = [1.4]
-            map.use_min = True
-            map.min = [0]
-
-            links.new(render_layers.outputs['Depth'], map.inputs[0])
-            links.new(map.outputs[0], depth_file_output.inputs[0])
-
-        # # Create normal output nodes
-        # scale_node = nodes.new(type="CompositorNodeMixRGB")
-        # scale_node.blend_type = 'MULTIPLY'
-        # # scale_node.use_alpha = True
-        # scale_node.inputs[2].default_value = (0.5, 0.5, 0.5, 1)
-        # links.new(render_layers.outputs['Normal'], scale_node.inputs[1])
+        # else:
+        #     depth_file_output.format.color_mode = "BW"
         #
-        # bias_node = nodes.new(type="CompositorNodeMixRGB")
-        # bias_node.blend_type = 'ADD'
-        # # bias_node.use_alpha = True
-        # bias_node.inputs[2].default_value = (0.5, 0.5, 0.5, 0)
-        # links.new(scale_node.outputs[0], bias_node.inputs[1])
+        #     # Remap as other types can not represent the full range of depth.
+        #     map = nodes.new(type="CompositorNodeMapValue")
+        #     # Size is chosen kind of arbitrarily, try out until you're satisfied with resulting depth map.
+        #     map.offset = [-0.7]
+        #     map.size = [1.4]
+        #     map.use_min = True
+        #     map.min = [0]
         #
-        # normal_file_output = nodes.new(type="CompositorNodeOutputFile")
-        # normal_file_output.label = 'Normal Output'
-        # normal_file_output.base_path = ''
-        # normal_file_output.file_slots[0].use_node_format = True
-        # normal_file_output.format.file_format = args.format
-        # links.new(bias_node.outputs[0], normal_file_output.inputs[0])
+        #     links.new(render_layers.outputs['Depth'], map.inputs[0])
+        #     links.new(map.outputs[0], depth_file_output.inputs[0])
+
+        # Create normal output nodes
+        scale_node = nodes.new(type="CompositorNodeMixRGB")
+        scale_node.blend_type = 'MULTIPLY'
+        # scale_node.use_alpha = True
+        scale_node.inputs[2].default_value = (0.5, 0.5, 0.5, 1)
+        links.new(render_layers.outputs['Normal'], scale_node.inputs[1])
+
+        bias_node = nodes.new(type="CompositorNodeMixRGB")
+        bias_node.blend_type = 'ADD'
+        # bias_node.use_alpha = True
+        bias_node.inputs[2].default_value = (0.5, 0.5, 0.5, 0)
+        links.new(scale_node.outputs[0], bias_node.inputs[1])
+
+        normal_file_output = nodes.new(type="CompositorNodeOutputFile")
+        normal_file_output.label = 'Normal Output'
+        normal_file_output.base_path = ''
+        normal_file_output.file_slots[0].use_node_format = True
+        normal_file_output.format.file_format = cls.IMAGE_FORMATS[file_format]
+        links.new(bias_node.outputs[0], normal_file_output.inputs[0])
         #
         # # Create albedo output nodes
         # alpha_albedo = nodes.new(type="CompositorNodeSetAlpha")
@@ -591,8 +601,11 @@ def tracking_camera(position=(10,10,10), camera_name='Camera'):
     :param position: the X,Y,Z position of the camera
     :param camera_name: the name of the camera object to be moved
     """
-    data.objects['Light'].location = position
-    data.objects['Light'].data.use_shadow = False
+    # Set light position and type
+    light = data.objects['Light']
+    light.location = position
+    light.data.type = 'SUN'  # Set light type to 'SUN' for directional light
+    light.data.use_shadow = False
 
     camera = data.objects[camera_name]
     camera.location = position

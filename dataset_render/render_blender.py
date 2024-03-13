@@ -8,8 +8,33 @@
 #
 #blender --background --python ./dataset_render/render_blender.py -- --output_folder ./tmp/ ./dataset_render/tyrant.stl
 
+#blender --background --python ./dataset_render/render_blender.py -- --output_folder ./tmp/ ./Thingi10k/raw_meshes/32770.stl
+
 import argparse, sys, os, math, re
 import bpy
+def scale_mesh(mesh, max_dim=5.0):
+    """
+    Scales the given object so that it's longest dimension on any axis is exactly the number of units specified by
+    max_dim. This is useful for scaling objects to a consistent size.
+
+    If an object's maximum dimension is 0, no action is performed.
+
+    :param mesh: the object to scale to be exactly `max_dim` units at it's longest side
+    :param max_dim: the limit to how big an object can be on any axis
+    """
+    print("Scaling mesh %s to a maximum of %s in any direction" % (mesh.name, max_dim))
+    max_length = max(mesh.dimensions)
+    print('=================================================',max_length)
+    if max_length == 0:
+        print("No scaling for %s because its dimensions are %s" % (mesh.name, repr(mesh.dimensions)))
+        return  # skip scaling
+    scale_factor = 1 / (max_length / max_dim)
+    mesh.scale = (scale_factor, scale_factor, scale_factor)
+    x, y, z = [i for i in mesh.dimensions]  # for pretty dimension formatting
+    new_dimensions = "X=%s, Y=%s, Z=%s" % (x, y, z)
+    print("Scale factor for mesh %s is %s. Its new dimensions are %s",
+                  mesh.name, scale_factor, [i for i in new_dimensions])
+
 from glob import glob
 
 parser = argparse.ArgumentParser(description='Renders given obj file by rotation a camera around it.')
@@ -27,7 +52,7 @@ parser.add_argument('--edge_split', type=bool, default=True,
                     help='Adds edge split filter.')
 parser.add_argument('--depth_scale', type=float, default=1.4,
                     help='Scaling that is applied to depth. Depends on size of mesh. Try out various values until you get a good result. Ignored if format is OPEN_EXR.')
-parser.add_argument('--color_depth', type=str, default='8',
+parser.add_argument('--color_depth', type=str, default='16',
                     help='Number of bit per channel used for output. Either 8 or 16.')
 parser.add_argument('--format', type=str, default='PNG',
                     help='Format of files generated. Either PNG or OPEN_EXR')
@@ -35,6 +60,10 @@ parser.add_argument('--resolution', type=int, default=600,
                     help='Resolution of the images.')
 parser.add_argument('--engine', type=str, default='BLENDER_EEVEE',
                     help='Blender internal engine for rendering. E.g. CYCLES, BLENDER_EEVEE, ...')
+parser.add_argument('--max-dim', default=5.0, type=float,
+                            help="Limit the size of the mesh to not exceed this length on any axis. Setting it too "
+                                 "high will make it too large to fit in the image. Setting it too low will leave a lot "
+                                 "of empty margin in the image.")
 
 argv = sys.argv[sys.argv.index("--") + 1:]
 args = parser.parse_args(argv)
@@ -52,6 +81,7 @@ render.resolution_x = args.resolution
 render.resolution_y = args.resolution
 render.resolution_percentage = 100
 render.film_transparent = True
+max_dim = args.max_dim
 
 scene.use_nodes = True
 scene.view_layers["View Layer"].use_pass_normal = True
@@ -159,7 +189,7 @@ bpy.ops.import_mesh.stl(filepath=args.obj)
 obj = bpy.context.selected_objects[0]
 context.view_layer.objects.active = obj
 bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
-
+#scale_mesh(obj, max_dim=max_dim)
 # Possibly disable specular shading
 for slot in obj.material_slots:
     node = slot.material.node_tree.nodes['Principled BSDF']

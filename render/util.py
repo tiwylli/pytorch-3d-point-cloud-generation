@@ -7,8 +7,11 @@ def setupBlender(buffer_path,RESOLUTION):
 	camera.data.type = "ORTHO"
 	camera.data.ortho_scale = 1
 	# compositor nodes
-	scene.render.use_antialiasing = False
-	scene.render.alpha_mode = "TRANSPARENT"
+	#scene.render.use_antialiasing = False
+	scene.display.render_aa = 'OFF'
+	#scene.render.alpha_mode = "TRANSPARENT"
+	scene.render.film_transparent = True
+	#
 	scene.render.image_settings.color_depth = "16"
 	scene.render.image_settings.color_mode = "RGBA"
 	scene.render.image_settings.use_zbuffer = True
@@ -19,10 +22,17 @@ def setupBlender(buffer_path,RESOLUTION):
 		tree.nodes.remove(n)
 	rl = tree.nodes.new("CompositorNodeRLayers")
 	fo = tree.nodes.new("CompositorNodeOutputFile")
+
+	normalize_node = tree.nodes.new("CompositorNodeNormalize")
+
+
 	fo.base_path = buffer_path
 	fo.format.file_format = "OPEN_EXR"
-	fo.file_slots.new("Z")
-	tree.links.new(rl.outputs["Z"],fo.inputs["Z"])
+	fo.file_slots.new("Depth")
+	#tree.links.new(rl.outputs["Depth"],fo.inputs["Depth"])
+	tree.links.new(rl.outputs["Depth"], normalize_node.inputs[0])
+	tree.links.new(normalize_node.outputs[0], fo.inputs["Depth"])
+
 	scene.render.resolution_x = RESOLUTION
 	scene.render.resolution_y = RESOLUTION
 	scene.render.resolution_percentage = 100
@@ -193,3 +203,18 @@ def getFixedViews(FIXED):
 			[0.9614,-0.2750,0]],dtype=float)
 	else: camPosAll = None
 	return camPosAll
+
+
+def scaleMesh(mesh, max_dim=5.0):
+	# scale the mesh to fit into a unit sphere
+	max_length = max(mesh.dimensions)
+	if max_length > 0:
+		scale_factor = 1 / (max_length / max_dim)
+		mesh.scale = (scale_factor, scale_factor, scale_factor)
+		x, y, z = [i for i in mesh.dimensions]  # for pretty dimension formatting
+		new_dimensions = "X=%s, Y=%s, Z=%s" % (x, y, z)
+		print("Scale factor for mesh %s is %s. Its new dimensions are %s", mesh.name, scale_factor,
+			  [i for i in new_dimensions])
+	else:
+		print("No scaling for %s because its dimensions are %s" % (mesh.name, repr(mesh.dimensions)))
+
