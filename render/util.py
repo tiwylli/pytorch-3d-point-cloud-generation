@@ -23,15 +23,16 @@ def setupBlender(buffer_path,RESOLUTION):
 	rl = tree.nodes.new("CompositorNodeRLayers")
 	fo = tree.nodes.new("CompositorNodeOutputFile")
 
-	normalize_node = tree.nodes.new("CompositorNodeNormalize")
-
-
 	fo.base_path = buffer_path
 	fo.format.file_format = "OPEN_EXR"
 	fo.file_slots.new("Depth")
-	#tree.links.new(rl.outputs["Depth"],fo.inputs["Depth"])
-	tree.links.new(rl.outputs["Depth"], normalize_node.inputs[0])
-	tree.links.new(normalize_node.outputs[0], fo.inputs["Depth"])
+
+	tree.links.new(rl.outputs["Depth"],fo.inputs["Depth"])
+
+	#####ish working only to visualise
+	# normalize_node = tree.nodes.new("CompositorNodeNormalize")
+	# tree.links.new(rl.outputs["Depth"], normalize_node.inputs[0])
+	# tree.links.new(normalize_node.outputs[0], fo.inputs["Depth"])
 
 	scene.render.resolution_x = RESOLUTION
 	scene.render.resolution_y = RESOLUTION
@@ -205,7 +206,7 @@ def getFixedViews(FIXED):
 	return camPosAll
 
 
-def scaleMesh(mesh, max_dim=5.0):
+def scaleMesh(mesh, max_dim):
 	# scale the mesh to fit into a unit sphere
 	max_length = max(mesh.dimensions)
 	if max_length > 0:

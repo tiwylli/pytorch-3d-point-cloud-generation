@@ -2,10 +2,13 @@
 runs/
 # Model output
 models/
+# Results
+results/
 # Logs
 logs/
 # Data symlinks
 data/
+Thingi10K/
 !data/trans_fuse8.npy
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -109,3 +112,4 @@ ENV/
 # mypy
 .mypy_cache/
 /tmp/
+/results/ORIG_STG2_1k_adam_trueWD/

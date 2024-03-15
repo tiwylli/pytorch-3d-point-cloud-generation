@@ -26,7 +26,8 @@ import util
 
 # redirect output to log file
 logfile = "./tmp/blender_render.log"
-max_dim = 1.0
+errors_log = "./tmp/blender_render_errors.log"
+max_dim = .75
 #SHAPENETPATH = sys.argv[-5]
 THINGI10KPATH = os.path.abspath("../Thingi10k/raw_meshes/")
 BUFFERPATH = os.path.abspath("./buffer/")
@@ -41,6 +42,7 @@ camPosAll = util.getFixedViews(FIXED)
 
 #listFile = open(MODEL_LIST)
 # Get a list of all files in the directory
+#todo listfile truncated if some files already process (in case of crash)
 listFile = [f for f in os.listdir(THINGI10KPATH) if os.path.isfile(os.path.join(THINGI10KPATH, f))]
 
 for line in listFile:
@@ -62,7 +64,15 @@ for line in listFile:
 	#shape_file = "{2}/{0}/{1}/models/model_normalized.obj".format(CATEGORY,MODEL,SHAPENETPATH)THINGI10KPATH
 	shape_file = os.path.join(THINGI10KPATH,MODEL)
 	#bpy.ops.import_scene.obj(filepath=shape_file)
-	bpy.ops.import_mesh.stl(filepath=shape_file)
+
+
+	#todo trycatch the import to not crash if error, log it to file
+	try:
+		bpy.ops.import_mesh.stl(filepath=shape_file)
+	except Exception as e:
+		with open(errors_log, "a") as f:
+			f.write(f"Error importing {shape_file}: {str(e)}\n")
+		continue
 	#################
 	mesh = context.selected_objects[0]
 	for obj in bpy.context.selected_objects:  # deselect EVERYTHING
@@ -71,7 +81,6 @@ for line in listFile:
 	bpy.context.view_layer.objects.active = mesh
 
 	ops.object.origin_set(type='GEOMETRY_ORIGIN')
-
 	util.scaleMesh(mesh, max_dim)
 	#bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 	####
@@ -97,7 +106,7 @@ for line in listFile:
 		# 		else: o.select = True
 		# 	bpy.ops.transform.rotate(value=-np.pi/2,axis=(0,0,1))
 
-		bpy.ops.render.render(write_still=True)
+		bpy.ops.render.render(write_still=False)
 
 		shutil.copyfile("{0}/Depth0001.exr".format(fo.base_path),
 						"{0}/{1}.exr".format(depth_path,i))
@@ -120,7 +129,7 @@ for line in listFile:
 	    bpy.data.materials.remove(m)
 
 	print("{1} done, time={0:.4f} sec".format(time.time()-timeStart,MODEL))
-	exit(0)
+	#exit(0)
 
 trans = np.array(trans,dtype=np.float32)
 np.save("output/trans_fuse{0}.npy".format(FIXED),trans)

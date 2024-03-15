@@ -17,7 +17,7 @@ ps.set_up_dir("z_up")
 for i in range(24):
     ps.register_point_cloud("my points"+str(i), mat[i][0])
     ps.show()
-    #ps.screenshot("my points"+str(i),True)
+    #ps.scr  eenshot("my points"+str(i),True)
     ps.remove_point_cloud("my points"+str(i))
 #ps.register_point_cloud("my points"+str(4), mat[7][0])
 #ps.show()
