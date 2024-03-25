@@ -36,7 +36,8 @@ BUFFERPATH = os.path.abspath("./buffer/")
 RESOLUTION = int(sys.argv[-2])
 FIXED = int(sys.argv[-1])
 
-scene,camera,fo = util.setupBlender(BUFFERPATH,RESOLUTION)
+# scene,camera,fo = util.setupBlender(BUFFERPATH,RESOLUTION)
+scene,camera,fo_depth,fo_rgb = util.setupBlender(BUFFERPATH,RESOLUTION)
 camPosAll = util.getFixedViews(FIXED)
 
 
@@ -44,16 +45,19 @@ camPosAll = util.getFixedViews(FIXED)
 # Get a list of all files in the directory
 #todo listfile truncated if some files already process (in case of crash)
 listFile = [f for f in os.listdir(THINGI10KPATH) if os.path.isfile(os.path.join(THINGI10KPATH, f))]
-
+#print(listFile)
+#time.sleep(300)
 for line in listFile:
 	MODEL = line.strip()
 	timeStart = time.time()
 	trans = []
 
 	depth_path = "output/{1}_depth_fixed/exr_{0}".format(MODEL.strip(".stl"),FIXED)
+	rgb_path = "output/{1}_rgb_fixed/exr_{0}".format(MODEL.strip(".stl"),FIXED)
 	if not os.path.isdir(depth_path):
 		os.makedirs(depth_path)
-
+	if not os.path.isdir(rgb_path):
+		os.makedirs(rgb_path)
 	# # suppress output
 	# open(logfile,"a").close()
 	# old = os.dup(1)
@@ -108,8 +112,10 @@ for line in listFile:
 
 		bpy.ops.render.render(write_still=False)
 
-		shutil.copyfile("{0}/Depth0001.exr".format(fo.base_path),
-						"{0}/{1}.exr".format(depth_path,i))
+		# shutil.copyfile("{0}/Depth0001.exr".format(fo.base_path),"{0}/{1}.exr".format(depth_path,i))
+		shutil.copyfile("{0}/Depth0001.exr".format(fo_depth.base_path),"{0}/{1}.exr".format(depth_path,i))
+		shutil.copyfile("{0}/RGB0001.exr".format(fo_rgb.base_path),"{0}/{1}.exr".format(rgb_path,i))
+
 		trans.append(np.array(q_extr))
 
 	# # show output

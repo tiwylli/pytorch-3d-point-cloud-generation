@@ -7,11 +7,8 @@ def setupBlender(buffer_path,RESOLUTION):
 	camera.data.type = "ORTHO"
 	camera.data.ortho_scale = 1
 	# compositor nodes
-	#scene.render.use_antialiasing = False
 	scene.display.render_aa = 'OFF'
-	#scene.render.alpha_mode = "TRANSPARENT"
 	scene.render.film_transparent = True
-	#
 	scene.render.image_settings.color_depth = "16"
 	scene.render.image_settings.color_mode = "RGBA"
 	scene.render.image_settings.use_zbuffer = True
@@ -21,13 +18,36 @@ def setupBlender(buffer_path,RESOLUTION):
 	for n in tree.nodes:
 		tree.nodes.remove(n)
 	rl = tree.nodes.new("CompositorNodeRLayers")
-	fo = tree.nodes.new("CompositorNodeOutputFile")
 
-	fo.base_path = buffer_path
-	fo.format.file_format = "OPEN_EXR"
-	fo.file_slots.new("Depth")
+	# Create separate CompositorNodeOutputFile nodes for depth and RGB data
+	fo_depth = tree.nodes.new("CompositorNodeOutputFile")
+	fo_rgb = tree.nodes.new("CompositorNodeOutputFile")
 
-	tree.links.new(rl.outputs["Depth"],fo.inputs["Depth"])
+	# Set the base paths for the depth and RGB data
+	fo_depth.base_path = buffer_path + "/depth"
+	fo_rgb.base_path = buffer_path + "/rgb"
+
+	# Set the file formats for the depth and RGB data
+	fo_depth.format.file_format = "OPEN_EXR"
+	fo_rgb.format.file_format = "OPEN_EXR"
+
+	# Create file slots for the depth and RGB data
+	fo_depth.file_slots.new("Depth")
+	fo_rgb.file_slots.new("RGB")
+
+	# Link the depth and RGB outputs to the corresponding file slots
+	tree.links.new(rl.outputs["Depth"], fo_depth.inputs["Depth"])
+	tree.links.new(rl.outputs["Image"], fo_rgb.inputs["RGB"])
+
+	# fo = tree.nodes.new("CompositorNodeOutputFile")
+	#
+	# fo.base_path = buffer_path
+	# fo.format.file_format = "OPEN_EXR"
+	# fo.file_slots.new("Depth")
+	# fo.file_slots.new("RGB")
+	#
+	# tree.links.new(rl.outputs["Depth"],fo.inputs["Depth"])
+	# tree.links.new(rl.outputs["Image"], fo.inputs["RGB"])
 
 	#####ish working only to visualise
 	# normalize_node = tree.nodes.new("CompositorNodeNormalize")
@@ -37,7 +57,9 @@ def setupBlender(buffer_path,RESOLUTION):
 	scene.render.resolution_x = RESOLUTION
 	scene.render.resolution_y = RESOLUTION
 	scene.render.resolution_percentage = 100
-	return scene,camera,fo
+	# return scene,camera,fo
+	return scene,camera,fo_depth, fo_rgb
+
 
 def setCameraExtrinsics(camera,camPos,q):
 	camera.rotation_mode = "QUATERNION"

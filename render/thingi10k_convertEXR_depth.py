@@ -63,7 +63,7 @@ for folder in listDepthFolders:
 		depth = readEXR("{0}/{1}.exr".format(folder,i),RESOLUTION)
 		depth[np.isinf(depth)] = 0
 		Z.append(depth)
-	mat_path = "output/{0}_depth_fixed_mat/{1}.mat".format(FIXED,model_folder_name)
+	mat_path = "output/thingi10k_depth_fixed{0}/{1}.mat".format(FIXED,model_folder_name)
 	scipy.io.savemat(mat_path,{
 		"Z": np.stack(Z),
 	})
