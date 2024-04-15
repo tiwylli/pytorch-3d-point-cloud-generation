@@ -1,9 +1,28 @@
-python3 train_stg2.py --model ORIG_STG2 --experiment 1k_adam_trueWD \
-	--loadPath ORIG_STG1_1k_adam_trueWD \
+#python3 train_stg2.py --model ORIG_STG2 --experiment pooptodelete \
+#	--loadPath ORIG_STG1_1k_adam_trueWD \
+#	--chunkSize 100 --batchSize 32 \
+#	--endEpoch 500 --saveEpoch 20 \
+#	--optim adam --trueWD 1e-4 --lr 5e-3 \
+#	--gpu 4
+
+##Thingi10k dataset
+#python3 train_stg2.py --model ORIG_STG2 --experiment lc_thingi10k \
+#	--loadPath ORIG_STG1_lc_thingi10k \
+#	--chunkSize 100 --batchSize 100 \
+#	--endEpoch 500 --saveEpoch 20 \
+#	--optim adam --trueWD 1e-4 --lr 5e-3 \
+#	--gpu 6 \
+#	--path render/output \
+#  --category thingi10k
+#Thingi10k dataset
+python3 train_stg2.py --model ORIG_STG2 --experiment adrienThingi10k \
+	--loadPath ORIG_STG1_adrienThingi10k \
 	--chunkSize 100 --batchSize 32 \
 	--endEpoch 500 --saveEpoch 20 \
 	--optim adam --trueWD 1e-4 --lr 5e-3 \
-	--gpu 4
+	--gpu 6 \
+	--path render/output \
+  --category thingi10k
 
 # python train_stg2.py --model ORIG_STG2 --experiment sgd_trueWD \
 	# --loadPath ORIG_STG1_sgd_trueWD \

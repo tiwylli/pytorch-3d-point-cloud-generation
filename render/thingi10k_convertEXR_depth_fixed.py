@@ -54,14 +54,23 @@ for folder in listDepthFolders:
 	# 	"trans": trans,
 	# })
 	# os.system("rm -rf {0}".format(depth_path))
-
+########################################################################################################################
 	# fixed views
 	Z = []
 	#depth_path = "output/{1}_depth_fixed/exr_{0}".format(MODEL,FIXED)
 
 	for i in range(FIXED):
-		depth = readEXR("{0}/{1}.exr".format(folder,i),RESOLUTION)
-		depth[np.isinf(depth)] = 0
+		try :
+			depth = readEXR("{0}/{1}.exr".format(folder,i),RESOLUTION)
+		except:
+			print("error reading {0}/{1}.exr".format(folder,i))
+			break
+		#depth[np.isinf(depth)] = 0
+		for k in range(depth.shape[0]):
+			for j in range(depth.shape[1]):
+				if depth[k][j] == 65504:
+					depth[k][j] = 0
+
 		Z.append(depth)
 	mat_path = "output/thingi10k_depth_fixed{0}/{1}.mat".format(FIXED,model_folder_name)
 	scipy.io.savemat(mat_path,{

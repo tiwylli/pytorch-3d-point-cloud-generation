@@ -312,6 +312,8 @@ class TrainerStage2:
         fuseTrans = self.cfg.fuseTrans
 
         for self.iteration, batch in enumerate(data_loader, self.iteration):
+
+            #print(batch.keys())
             input_images, renderTrans, depthGT, maskGT = utils.unpack_batch_novel(batch, self.cfg.device)
 
             with torch.set_grad_enabled(True):

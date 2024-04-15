@@ -19,6 +19,7 @@ if __name__ == "__main__":
 
     criterions = utils.define_losses()
     dataloaders = utils.make_data_novel(cfg)
+    #dataloaders = utils.make_data_fixed(cfg)
 
     model = utils.build_structure_generator(cfg).to(cfg.device)
     optimizer = utils.make_optimizer(cfg, model)

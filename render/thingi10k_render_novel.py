@@ -1,6 +1,6 @@
 # usage: blender blank.blend -b -P render_fixed.py -- SHAPENETPATH CATEGORY MODEL_LIST RESOLUTION FIXED
-# blender blank.blend -b -P thingi10k_render_fixed.py -- 128 8
-# blender blank.blend -b -P thingi10k_render_fixed.py -- 64 24
+# blender blank.blend -b -P thingi10k_render_novel.py -- 128
+# blender blank.blend -b -P thingi10k_render_novel.py -- 64
 # 1. launch next 2 lines of code in blender python interpreter
 import pip
 #pip.main(['install', 'tqdm', '--user'])
@@ -28,23 +28,19 @@ import util
 logfile = "./tmp/blender_render.log"
 errors_log = "./tmp/blender_render_errors.log"
 max_dim = .75
-#SHAPENETPATH = sys.argv[-5]
+
 THINGI10KPATH = os.path.abspath("../Thingi10k/raw_meshes/")
 BUFFERPATH = os.path.abspath("./buffer/")
-#CATEGORY = sys.argv[-4]
-#MODEL_LIST = sys.argv[-3]
-RESOLUTION = int(sys.argv[-2])
-FIXED = int(sys.argv[-1])
+
+RESOLUTION = int(sys.argv[-1])
+
 
 # scene,camera,fo = util.setupBlender(BUFFERPATH,RESOLUTION)
 scene,camera,fo_depth,fo_rgb = util.setupBlender(BUFFERPATH,RESOLUTION)
-camPosAll = util.getFixedViews(FIXED)
 
-
-#listFile = open(MODEL_LIST)
 # Get a list of all files in the directory
 #todo listfile truncated if some files already process (in case of crash)
-listFile = [f for f in os.listdir(THINGI10KPATH) if os.path.isfile(os.path.join(THINGI10KPATH, f))]
+listFile = [f for f in os.listdir(THINGI10KPATH)]
 #print(listFile)
 #time.sleep(300)
 for line in listFile:
@@ -52,8 +48,8 @@ for line in listFile:
 	timeStart = time.time()
 	trans = []
 
-	depth_path = "output/{1}_depth_fixed/exr_{0}".format(MODEL.strip(".stl"),FIXED)
-	rgb_path = "output/{1}_rgb_fixed/exr_{0}".format(MODEL.strip(".stl"),FIXED)
+	depth_path = "output/depth_rand/exr_{0}".format(MODEL.strip(".stl"))
+	rgb_path = "output/rgb_rand/exr_{0}".format(MODEL.strip(".stl"))
 	if not os.path.isdir(depth_path):
 		os.makedirs(depth_path)
 	else :
@@ -86,46 +82,45 @@ for line in listFile:
 		obj.select_set(False)
 	mesh.select_set(state=True)  # ok now just select our mesh
 	bpy.context.view_layer.objects.active = mesh
-
 	ops.object.origin_set(type='GEOMETRY_ORIGIN')
 	util.scaleMesh(mesh, max_dim)
-	### remove -b tag to see the output
-	bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-
+	###
+	#bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+	#time.sleep(300)
 	###
 	for m in bpy.data.materials:
 		m.use_shadeless = True
-	time.sleep(300)
-	for i in range(FIXED):
-		theta = 0
-		camPos = camPosAll[i]
+	N = 100
+	for i in range(N):
+		# uniformly sample rotation angle
+		rho, azim, elev, theta = util.randomRotation()
+		camPos = util.objectCenteredCamPos(rho, azim, elev)
 		q1 = util.camPosToQuaternion(camPos)
-		q2 = util.camRotQuaternion(camPos,theta)
-		q = util.quaternionProduct(q2,q1)
+		q2 = util.camRotQuaternion(camPos, theta)
+		q = util.quaternionProduct(q2, q1)
 
-		util.setCameraExtrinsics(camera,camPos,q)
-		q_extr,t_extr = util.cameraExtrinsicMatrix(q,camPos)
+		util.setCameraExtrinsics(camera, camPos, q)
+		q_extr, t_extr = util.cameraExtrinsicMatrix(q, camPos)
 
 		# # for ShapeNetCore.v2 all the objects are rotated 90 degrees
 		# # comment out this block if ShapeNetCore.v1 is used
-		# if i==0:
+		# if i == 0:
 		# 	for o in bpy.data.objects:
-		# 		if o==camera: o.select = False
-		# 		else: o.select = True
-		# 	bpy.ops.transform.rotate(value=-np.pi/2,axis=(0,0,1))
+		# 		if o == camera:
+		# 			o.select = False
+		# 		else:
+		# 			o.select = True
+		# 	bpy.ops.transform.rotate(value=-np.pi / 2, axis=(0, 0, 1))
 
 		bpy.ops.render.render(write_still=False)
 
-		# shutil.copyfile("{0}/Depth0001.exr".format(fo.base_path),"{0}/{1}.exr".format(depth_path,i))
 		shutil.copyfile("{0}/Depth0001.exr".format(fo_depth.base_path),"{0}/{1}.exr".format(depth_path,i))
 		shutil.copyfile("{0}/RGB0001.exr".format(fo_rgb.base_path),"{0}/{1}.exr".format(rgb_path,i))
 
 		trans.append(np.array(q_extr))
 
-	# # show output
-	# os.close(1)
-	# os.dup(old)
-	# os.close(old)
+	trans_path = "{0}/trans.mat".format(depth_path)
+	scipy.io.savemat(trans_path,{ "trans": np.stack(trans) })
 
 	# clean up
 	for o in bpy.data.objects:
@@ -139,12 +134,5 @@ for line in listFile:
 	    bpy.data.materials.remove(m)
 
 	print("{1} done, time={0:.4f} sec".format(time.time()-timeStart,MODEL))
-	#time.sleep(500)
-
-trans = np.array(trans,dtype=np.float32)
-np.save("output/trans_fuse{0}.npy".format(FIXED),trans)
-
-
-
-
+	#exit(0)
 

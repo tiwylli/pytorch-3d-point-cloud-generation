@@ -5,14 +5,14 @@ import OpenEXR
 import array,Imath
 from scipy import ndimage
 
-THINGI10KPATH = os.path.abspath("./output/8_rgb_fixed/")
+THINGI10KPATH = os.path.abspath("./output/24_rgb_fixed/")
 #CATEGORY = sys.argv[-4]
 #MODEL_LIST = sys.argv[-3]
 #RESOLUTION = int(sys.argv[-2])
-RESOLUTION = 128
+RESOLUTION = 64
 #RESOLUTION = 128
 #FIXED = int(sys.argv[-1])
-FIXED = 8
+FIXED = 24
 N = 100
 
 
@@ -53,13 +53,14 @@ def readEXR(filename):
 	colorChannels = ['R', 'G', 'B']
 	img = np.concatenate([channelData[c][..., np.newaxis] for c in colorChannels], axis=2)
 
-	# Calculate start and end indices
-	start_index = img.shape[0] // 4
-	end_index = img.shape[0] - start_index
+	# # Calculate start and end indices if you want to reduce the image size
+	# start_index = img.shape[0] // 4
+	# end_index = img.shape[0] - start_index
+	# # Slice the array
+	# resized_img = img[start_index:end_index, start_index:end_index, :]
+	# img = resized_img
+	#
 
-	# Slice the array
-	resized_img = img[start_index:end_index, start_index:end_index, :]
-	img = resized_img
 	# linear to standard RGB
 	img[..., :3] = np.where(img[..., :3] <= 0.0031308,
 							12.92 * img[..., :3],
@@ -70,24 +71,6 @@ def readEXR(filename):
 
 	return img
 
-
-
-
-
-
-
-# def readEXR(fname,RESOLUTION):
-# 	channel_list = ["B","G","R"]
-# 	file = OpenEXR.InputFile(fname)
-# 	dw = file.header()["dataWindow"]
-# 	height,width = RESOLUTION,RESOLUTION
-# 	FLOAT = Imath.PixelType(Imath.PixelType.FLOAT)
-# 	vectors = [np.array(array.array("f",file.channel(c,FLOAT))) for c in channel_list]
-# 	depth = vectors[0].reshape([height,width])
-# 	return depth
-
-#listFile = open(MODEL_LIST)
-#listFile = [f for f in os.listdir(THINGI10KPATH) if os.path.isfile(os.path.join(THINGI10KPATH, f))]
 listRGBFolders = [os.path.join(dirpath) for dirpath, dirnames, files in os.walk(THINGI10KPATH)]
 
 #remove parent directory
@@ -101,6 +84,16 @@ for folder in listRGBFolders:
 
 	print(folder)
 	print(model_folder_name)
+
+	#Check if model_folder_name.npy exists in output/thingi10k_inputRGB
+	if os.path.exists("output/thingi10k_inputRGB/{0}.npy".format(model_folder_name)):
+		print("Folder exists, skipping...")
+		continue
+
+	#Check if model_folder_name is empty
+	# if len(os.listdir(folder)) == 0:
+	# 	print("Folder is empty, skipping...")
+	# 	continue
 
 	# # arbitrary views
 	# Z = []
